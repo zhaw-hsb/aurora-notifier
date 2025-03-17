@@ -1,0 +1,11 @@
+<button *ngIf="hasAuthorityValue() && isWorkflow" class="btn btn-secondary"
+  type="button"
+  ngbTooltip="{{'form.edit-help' | translate}}"
+  placement="top"
+  [disabled]=""
+  (click)="onButtonClick()">
+  <i class="fa fa-envelope"></i>
+</button>
+
+
+

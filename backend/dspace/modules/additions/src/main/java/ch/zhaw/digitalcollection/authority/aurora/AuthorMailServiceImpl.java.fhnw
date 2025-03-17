@@ -1,0 +1,194 @@
+/*
+* This file is part of the Aurora Notifier.
+*
+* (c) ZHAW HSB <apps.hsb@zhaw.ch>
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
+package ch.zhaw.digitalcollection.authority.aurora;
+
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.Objects;
+
+import javax.inject.Inject;
+import javax.mail.MessagingException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.content.Item;
+import org.dspace.content.ItemServiceImpl;
+import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
+import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItemServiceImpl;
+import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import ch.zhaw.digitalcollection.authority.aurora.service.OAStatusModel;
+import ch.zhaw.digitalcollection.authority.aurora.service.AuthorMailService;
+
+/**
+ * This class is the implementation of the author mail service. It fills and sends the email.
+ * 
+ * @author Dana Ghousson ZHAW
+ * @author Iris Hausmann ZHAW
+ */
+public class AuthorMailServiceImpl implements AuthorMailService {
+    /**
+     * log4j log
+     */
+    private static final Logger log = LogManager.getLogger(AuthorMailServiceImpl.class);
+
+    @Autowired(required = true)
+    XmlWorkflowItemServiceImpl workflowItemServiceImpl;
+    @Autowired(required = true)
+    protected ClaimedTaskService claimedTaskService;
+    @Inject
+    protected ConfigurationService configurationService;
+    @Autowired(required = true)
+    protected ItemServiceImpl itemServiceImpl;
+
+    String auroraFieldName = "fhnw.oastatus.aurora";
+
+
+    protected AuthorMailServiceImpl() {
+    }
+
+
+    public void sendBitstreamRequest(Context context, String email, String authorName, String submissionId)
+        throws MessagingException, IOException, SQLException {
+
+        OAStatusModel auroraModel = new OAStatusModel();
+        //String[] authorNameParts = authorName.split(", ");
+        //String contactedAuthor = authorNameParts[1] + " " + authorNameParts[0];
+
+        XmlWorkflowItem workflowItem =  workflowItemServiceImpl.find(context, Integer.parseInt(submissionId));
+        
+        EPerson owner = claimedTaskService.findByWorkflowItem(context, workflowItem).get(0).getOwner();
+        String ownerName =  Objects.requireNonNullElse(owner.getFullName(), "");
+        String ownerEmail = owner.getEmail();
+ 
+        Item item = workflowItem.getItem();
+
+
+        String articleTitle = Objects.requireNonNullElse(itemServiceImpl.getMetadata(item, "dc.title"),"");
+        String date = itemServiceImpl.getMetadata(item, "dc.date.issued");
+        String dateIssued = "";
+        if(date != null){
+            dateIssued = "("+date.substring(0, Math.min(date.length(), 4))+")";
+        }
+        String doi = Objects.requireNonNullElse(itemServiceImpl.getMetadata(item, "dc.identifier.doi"),"");
+        auroraModel = this.fillModel(itemServiceImpl.getMetadata(item, this.auroraFieldName));
+        
+        if(auroraModel == null){
+            throw new IllegalStateException("Missing value for " + this.auroraFieldName + ".");
+        }
+ 
+
+
+        /*
+            # AURORA notification [DE]
+            # 
+            # {0}  Name of contacted author (Vorname = Wert hinter dem Komma)
+            # {1}  Title of submission
+            # {2}  Publication date of submission
+            # {3}  DOI of submission
+            # {4}  Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+            # {5}  Embargo [Sperrfrist: XX Monate] 
+            # {6}  Licence [Lizenz: XX]
+            # {7}  URL [value]
+            # {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle - ist das machbar? Sonst weglassen)
+        */
+
+        Locale locale = context.getCurrentLocale();
+        Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale,"author_bitstream_request"));
+        bean.addRecipient(email);
+        bean.addRecipient(ownerEmail);
+        bean.addRecipient(configurationService.getProperty("mail.helpdesk"));
+        //bean.addArgument(contactedAuthor);
+        bean.addArgument(articleTitle);
+        bean.addArgument(dateIssued);
+        bean.addArgument(doi);
+        bean.addArgument(auroraModel.getVersion());
+        bean.addArgument(auroraModel.getEmbargo());
+        bean.addArgument(auroraModel.getLicence());
+        //bean.addArgument(auroraModel.getUrl());
+        bean.addArgument(ownerName);
+        bean.send();
+
+        // Breadcrumbs
+        if (log.isInfoEnabled()) {
+            log.info("Sent author mail to " + email);
+        }
+    }
+
+
+    /*
+    
+     * Erste Zeile: wenn "accepted", dann "Akzeptiertes Autorenmanuskript (AAM)" / wenn "published", dann "Publizierte Verlagsversion"
+        Zweite Zeile: Sperrfrist: XX Monate (bei "0 Months" Zeile auslassen; Zahlen übernehmen, "Months" in "Monate" übersetzen)
+        Dritte Zeile: Lizenz: <Licence> (bei "None" Zeile auslassen; andere Werte können wie bisher übernommen werden)
+        Vierte Zeile: Weitere Informationen finden Sie unter <URL> (Wert kann wie bisher übernommen werden)  
+     */
+
+
+    public OAStatusModel fillModel(String auroraField){
+
+        if(auroraField == null){
+            return null;
+        }
+
+        OAStatusModel auroraModel = new OAStatusModel();
+
+        String[] parts = auroraField.split(" \\*\\*\\* ");
+
+        /*
+         * VERSION
+         */
+        String[] versionParts = parts[0].split(" ");
+        if (versionParts[1].equalsIgnoreCase("accepted")){
+            auroraModel.setVersion("- Akzeptiertes Autorenmanuskript (AAM)\n");
+        }else if (versionParts[1].equalsIgnoreCase("published")){
+            auroraModel.setVersion("- Publizierte Verlagsversion\n");
+        }
+
+
+        /*
+         * EMBARGO
+         */
+        String[] embargoParts = parts[1].split(" ");
+        if(!embargoParts[1].equalsIgnoreCase("None")){
+            String embargoValue = embargoParts[1];
+            String embargoUnit = embargoParts[2].equalsIgnoreCase("Months") ? "Monate" : parts[2];
+            if(!embargoValue.equalsIgnoreCase("0")){
+                auroraModel.setEmbargo("- Sperrfrist: "+embargoValue+" "+embargoUnit+"\n");
+            }
+        }
+
+        /*
+         * LICENCE
+         */
+        String[] licenceParts = parts[2].split(" ");
+        if(!licenceParts[1].equalsIgnoreCase("None")){
+            auroraModel.setLicence("- Lizenz: "+licenceParts[1]+"\n");
+        }
+
+        
+        /*
+         * URL
+         */
+        String[] urlParts = parts[3].split(" ");
+        auroraModel.setUrl(urlParts[1]);
+        
+
+        return auroraModel;
+
+    }
+}

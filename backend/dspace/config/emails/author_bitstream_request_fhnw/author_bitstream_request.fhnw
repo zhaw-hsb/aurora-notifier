@@ -1,0 +1,44 @@
+# AURORA notification
+#
+# {0} Titel des Artikels
+# {1} Erscheinungsjahr des Artikels
+# {2} Original-DOI des Artikels
+# {3} Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+# {4} Embargo [Sperrfrist: XX Monate] 
+# {5} Licence [Lizenz: XX]
+# {6} Vor- und Nachname der Editorin Live
+#
+#  Subject: Zweitveröffentlichung Ihrer Publikation im IRF
+
+
+Guten Tag
+
+Über einen automatisierten Prozess wird in ausgewählten Datenbanken nach neuen Publikationen von FHNW-Angehörigen gesucht und geprüft, ob eine Zweitveröffentlichung im IRF möglich ist.
+Wir haben folgenden Artikel von Ihnen gefunden:
+
+${params[0]} ${params[1]}
+${params[2]}
+
+Es ist erlaubt, folgende Version des Artikels im IRF zu veröffentlichen:
+${params[3]}${params[4]}${params[5]}
+
+Wenn Sie von der Möglichkeit der Zweitveröffentlichung Gebrauch machen möchten, dürfen Sie uns diese Version des Dokuments gerne zustellen. Wir werden es im IRF hochladen und den Eintrag für Sie fertigstellen und im IRF veröffentlichen.
+
+Vielen Dank für Ihre Rückmeldung innert 14 Tagen.
+Bei Fragen zum Vorgehen oder den rechtlichen Grundlagen stehen wir Ihnen gerne zur Verfügung.
+
+Freundliche Grüsse
+${params[6]}
+
+------------------------------------------------------------
+Fachhochschule Nordwestschweiz FHNW
+Vizepräsidium Hochschulentwicklung
+Bibliothek FHNW / Digitale Dienste
+
+Institutional Repository FHNW (IRF)
+Bahnhofstrasse 6
+5210 Windisch
+------------------------------------------------------------
+irf@fhnw.ch
+https://irf.fhnw.ch
+www.fhnw.ch
