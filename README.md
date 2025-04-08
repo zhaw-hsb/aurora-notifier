@@ -2,16 +2,16 @@
 
 
 ## About
-The author notification was implemented in DSpace as part of the AURORA project co-financed by swissuniversities. The message is intended to indicate how publishers can provide a full text for a secondary publication in the sense of Green Open Access.
+The author notification in DSpace was implemented as part of the AURORA project and co-financed by swissuniversities. The purpose of the notification is to guide authors on how to provide a full text for secondary publication in line with Green Open Access.
 
 
-In the user interface, a button appears next to the linked authors and editors, which can be used to trigger the e-mail delivery. Metadata from the entry is then used in the backend to populate the email template and send the message. The email is sent both to the linked person and to the internal administration centre.
+In the user interface, the button appearing next to the linked authors and editors can be clicked to generate an e-mail notification. In the backend, metadata from the publication entry is being used to fill in the e-mail template and send the message. The e-mail is sent both to the linked person and to the internal administrator.
 
-### Button for sending the email
+### Button for sending the e-mail
 
 <img src="public/assets/img/frontend_author_button.png" alt="author_notification_button" width="500">
 
-### Example of an email template
+### Example of an e-mail template
 
 ```
 # AURORA notification [DE]
@@ -65,7 +65,7 @@ digitalcollection@zhaw.ch
     - [Eager Theme Module](#eager-theme-module)
     - [ZHAW Shared Components](#zhaw-shared-components)
   - [Backend](#backend)
-    - [Email-Template](#email-template)
+    - [E-mail-Template](#email-template)
     - [AuthorNotificationRest](#authornotificationrest)
     - [AuthorMailService](#authormailservice)
     - [OAStatusModel](#oastatusmodel)
@@ -86,7 +86,7 @@ digitalcollection@zhaw.ch
 
 ## Frontend
 
-This chapter explains the implementation of the functionality for mail delivery in the user interface of the workflow.
+This chapter explains the implementation of the functionality for e-mail notification in the user interface of the workflow.
 
 <a name="dynamic-lookup-extended"/>
 
@@ -95,12 +95,12 @@ This chapter explains the implementation of the functionality for mail delivery 
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/dynamic-lookup-extended.component.ts
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/dynamic-lookup-extended.component.scss 
 
-The DsDynamicLookup files from the source code above are inserted and personalised in the themes folder. The files are renamed to DsDynamicExtendedLookup and inherit from DsDynamicLookup. A new service must be injected in the TS file so that the submissionId is known.
+In the themes folder, the DynamicLookup files from the upper source code are added and personalized. The files are renamed DsDynamicExtendedLookup and inherit from the DsDynamicLookup. In the TS file, a new service must be injected, so that the submissionId is known.
 ```
 @Inject('submissionIdProvider') public injectedSubmissionId: string
 ```
 
-The HTML is extended with the AuthorNotifier component, which implements the mail button.
+The HTML is extended with the AuthorNotifier component, which implements the e-mail button.
 ```
 <ds-author-notifier [submissionId]="injectedSubmissionId" [modelValue]="model.value"></ds-author-notifier>  
 ```
@@ -111,14 +111,14 @@ The HTML is extended with the AuthorNotifier component, which implements the mai
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/author-notifier/author-notifier.component.ts
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/author-notifier/author-notifier.component.html
 
-A new component is created in the themes folder, which implements the mail button. The button is only visible if a person (author or editor) is linked and if the item is in the workflow. After pressing the button, a confirmation window opens in which the execution of the action can be confirmed.
+A new component is created in the themes folder, which implements the e-mail button. The button is only visible if a person (author or editor) is linked and if the item is in the workflow. After pressing the button, a confirmation window opens in which the execution of the action can be confirmed.
 
 <a name="authornotificationservice"/>
 
 ### AuthorNotificationService 
 - src/themes/zhaw/app/core/data/author-notification.service.ts 
 
-The service is implemented in this file to send the information to the backend after the button has been pressed. The information provided is
+In this file the service is implemented to send the information to the backend after the button has been pressed. The information provided is
 - the requestType: type of mail
 - the authorName: name of the linked person
 - the submissionId: id of the item that is in the workflow
@@ -141,7 +141,7 @@ case DYNAMIC_FORM_CONTROL_TYPE_LOOKUP_NAME:
 ### Eager Theme Module 
 - src/themes/zhaw/eager-theme.module.ts 
 
-A new import "FormModule" must be made in the Eager Theme Module so that the Dynamic Lookup Extended HTML runs.
+A new import "FormModule" must be made in the Eager Theme Module, so that the Dynamic Lookup Extended HTML runs.
 
 <a name="zhaw-shared-components"/>
 
@@ -158,12 +158,12 @@ The new components declared in the Eager Theme Module are mentioned in the ZHAW 
 
 <a name="email-template"/>
 
-### Email-Template
+### E-mail-Template
 - dspace/config/emails/author_bitstream_request 
 - dspace/config/emails/author_bitstream_request_de
 - dspace/config/emails/author_bitstream_request_en
 
-The email template is saved in different languages and contains `${params[0]}` (numbered parameters) to fill the email with dynamic information.
+The e-mail template is saved in different languages and contains `${params[0]}` (numbered parameters) to fill the e-mail with dynamic information.
 
 <a name="authornotificationrest"/>
 
@@ -171,7 +171,7 @@ The email template is saved in different languages and contains `${params[0]}` (
 - dspace/modules/server/src/main/java/org/dspace/app/rest/model/AuthorNotificationRest.java
 - dspace/modules/server/src/main/java/org/dspace/app/rest/repository/AuthorNotificationRestRepository.java 
 
-The AuthorNotificationRest class is a model to store the information from the AuthorNotificationRestRepository. The author's email is mainly stored here.
+The AuthorNotificationRest class is a model to store the information from the AuthorNotificationRestRepository. The author's e-mail is mainly stored here.
 
 The query from the frontend is intercepted in the AuthorNotificationRestRepository. If the values are correct, the information is forwarded to the AuthorMailService.
 
@@ -181,14 +181,14 @@ The query from the frontend is intercepted in the AuthorNotificationRestReposito
 - dspace/modules/additions/src/main/java/ch/zhaw/digitalcollection/authority/aurora/AuthorMailServiceImpl.java
 - dspace/modules/additions/src/main/java/ch/zhaw/digitalcollection/authority/aurora/service/AuthorMailService.java
 
-An AuthorMailService is implemented, whose task is to fill the email template with the required information and send the email. The information is transformed in such a way that it optimally matches the template. They are added to the e-mail object in the same order as in the template.
+An AuthorMailService is implemented to fill the e-mail template with the required information and send the e-mail. The information is transformed in such a way that it optimally matches the template. They are added to the e-mail object in the same order as in the template.
 
 <a name="oastatusmodel"/>
 
 ### OAStatusModel
 - dspace/modules/additions/src/main/java/ch/zhaw/digitalcollection/authority/aurora/service/OAStatusModel.java
 
-A model for filling the email information. Here, for example, the information from an internal field is processed for the conditions for secondary publication.
+A model for filling the e-mail information. Here, for example, the information from an internal field is processed for the requirements for secondary publication.
 
 <a name="core-services"/>
 
