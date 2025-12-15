@@ -1,5 +1,7 @@
 # HSB Aurora Author Notifier
 
+## Version
+This code works for DSpace Version 7.6.0.
 
 ## About
 The author notification in DSpace was implemented as part of the AURORA project and co-financed by swissuniversities. The purpose of the notification is to guide authors on how to provide a full text for secondary publication in line with Green Open Access.
