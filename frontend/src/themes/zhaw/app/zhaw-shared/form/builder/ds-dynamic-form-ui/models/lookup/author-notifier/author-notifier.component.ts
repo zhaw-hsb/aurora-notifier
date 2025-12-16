@@ -6,23 +6,41 @@
 * For the full copyright and license information, please view the LICENSE
 * file that was distributed with this source code.
 */
-import { Component, Input, OnInit } from '@angular/core';
-
-import { DynamicFormLayoutService, DynamicFormValidationService } from '@ng-dynamic-forms/core';
-import { SubmissionService } from 'src/app/submission/submission.service';
-import { SubmissionScopeType } from 'src/app/core/submission/submission-scope-type';
-import { NotificationsService } from 'src/app/shared/notifications/notifications.service';
-import { TranslateService } from '@ngx-translate/core';
-import { hasValue } from 'src/app/shared/empty.util';
+import { NgIf } from '@angular/common';
+import {
+  Component,
+  Input,
+  OnInit,
+} from '@angular/core';
+import {
+  NgbModal,
+  NgbTooltipModule,
+} from '@ng-bootstrap/ng-bootstrap';
+import {
+  DynamicFormLayoutService,
+  DynamicFormValidationService,
+} from '@ng-dynamic-forms/core';
+import {
+  TranslateModule,
+  TranslateService,
+} from '@ngx-translate/core';
+import {
+  take,
+  tap,
+} from 'rxjs';
 import { RemoteData } from 'src/app/core/data/remote-data';
-import { Registration } from 'src/app/core/shared/registration.model';
 import { getFirstCompletedRemoteData } from 'src/app/core/shared/operators';
-import { AuthorNotificationService } from 'src/themes/zhaw/app/core/data/author-notification.service';
+import { Registration } from 'src/app/core/shared/registration.model';
+import { SubmissionScopeType } from 'src/app/core/submission/submission-scope-type';
+import { BtnDisabledDirective } from 'src/app/shared/btn-disabled.directive';
 import { ConfirmationModalComponent } from 'src/app/shared/confirmation-modal/confirmation-modal.component';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { take, tap } from 'rxjs';
+import { hasValue } from 'src/app/shared/empty.util';
+import { NotificationsService } from 'src/app/shared/notifications/notifications.service';
+import { SubmissionService } from 'src/app/submission/submission.service';
+import { AuthorNotificationService } from 'src/themes/zhaw/app/core/data/author-notification.service';
 
 export const TYPE_REQUEST_AUTHORMAIL = 'author_bitstream_request';
+
 
 /**
  * Component representing a button to send mails
@@ -32,7 +50,9 @@ export const TYPE_REQUEST_AUTHORMAIL = 'author_bitstream_request';
  */
 @Component({
   selector: 'ds-author-notifier',
-  templateUrl: './author-notifier.component.html'
+  templateUrl: './author-notifier.component.html',
+  standalone: true,
+  imports: [BtnDisabledDirective, NgbTooltipModule, TranslateModule, NgIf],
 })
 
 export class DsAuthorNotifierComponent implements OnInit {
@@ -95,7 +115,7 @@ export class DsAuthorNotifierComponent implements OnInit {
         if (confirm) {
           this.sendEmailToAuthor(this.modelValue.authority + '@zhaw.ch');
         }
-      })
+      }),
     ).subscribe();
 
 
@@ -117,7 +137,7 @@ export class DsAuthorNotifierComponent implements OnInit {
           this.notificationsService.error(this.translateService.get('author.notifier.error.head'),
             this.translateService.get('author.notifier.error.content', { email: authorEmail }));
         }
-      }
+      },
       );
 
   }

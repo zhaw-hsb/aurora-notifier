@@ -84,7 +84,7 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         if(date != null){
             dateIssued = "("+date.substring(0, Math.min(date.length(), 4))+")";
         }
-        String doi = Objects.requireNonNullElse(itemServiceImpl.getMetadata(item, "dc.identifier.doi"),"");
+        String doi = itemServiceImpl.getMetadata(item, "dc.identifier.doi")==null?"": "https://doi.org/"+itemServiceImpl.getMetadata(item, "dc.identifier.doi");
         auroraModel = this.fillModel(itemServiceImpl.getMetadata(item, this.auroraFieldName));
         
         if(auroraModel == null){
@@ -175,7 +175,7 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         /*
          * LICENCE
          */
-        String[] licenceParts = parts[2].split(" ");
+        String[] licenceParts = parts[2].split(" ", 2);
         if(!licenceParts[1].equalsIgnoreCase("None")){
             auroraModel.setLicence("- Lizenz: "+licenceParts[1]+"\n");
         }

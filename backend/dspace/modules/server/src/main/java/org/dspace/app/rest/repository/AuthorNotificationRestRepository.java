@@ -11,9 +11,9 @@ package org.dspace.app.rest.repository;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.mail.MessagingException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author Dana Ghousson ZHAW
  * @author Iris Hausmann ZHAW
  */
-@Component(AuthorNotificationRest.CATEGORY + "." + AuthorNotificationRest.NAME)
+@Component(AuthorNotificationRest.CATEGORY + "." + AuthorNotificationRest.NAME_PLURAL)
 public class AuthorNotificationRestRepository extends DSpaceRestRepository<AuthorNotificationRest, Integer> {
 
     private static Logger log = LogManager.getLogger(AuthorNotificationRestRepository.class);

@@ -1,7 +1,7 @@
 # HSB Aurora Author Notifier
 
 ## Version
-Dieser Code funktioniert mit DSpace Version 7.6.0.
+Dieser Code funktioniert mit DSpace Version 8.2.0. Für DSpace 7 Versionen nutzen Sie bitte den Code aus dem Tag notifier-1.0.
 
 ## Über
 Die Autorenbenachrichtigung wurde im Rahmen des von swissuniversities ko-finanzierten Projekts AURORA in DSpace implementiert. Die Nachricht soll auf Möglichkeiten hinweisen, wie Publizierende einen Volltext für eine Zweitveröffentlichung im Sinne des Green Open Access bereitstellen können.
@@ -16,31 +16,26 @@ Im Benutzerinterface erscheint ein Button neben den verknüpften Autor\*innen un
 ### Beispiel eines Emailtemplates
 
 ```
-# AURORA notification [DE]
-# 
-# {0}  Name of contacted author (Vorname = Wert hinter dem Komma)
-# {1}  Title of submission
-# {2}  Publication date of submission
-# {3}  DOI of submission
-# {4}  Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
-# {5}  Embargo [Sperrfrist: XX Monate] 
-# {6}  Licence [Lizenz: XX]
-# {7}  URL [value]
-# {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle - ist das machbar? Sonst weglassen)
-#
-
-Subject: Publikationsnachweis mit Open-Access-Potential
-
+## AURORA notification [DE]
+## 
+## {0}  Vorname des verlinkten Autors
+## {1}  Titel der Publikation
+## {2}  Publikationsdatum, nur Jahr
+## {3}  DOI
+## {4}  Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+## {5}  Embargo [Sperrfrist: XX Monate] 
+## {6}  Licence [Lizenz: XX]
+## {7}  URL [value]
+## {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle)
+## {9}  Name of the editor (Vorname und Nachname der bearbeitenden Person in der Qualitätskontrolle)
+#set($subject = 'Publikationsnachweis mit Open-Access-Potential')
 Guten Tag ${params[0]}
 
 Über einen automatischen Prozess haben wir eine deiner Publikationen gefunden und in der ZHAW digitalcollection als Eintrag erfasst:
-
-${params[1]} ${params[2]}
-${params[3]}
-
+${params[1]}${params[2]}${params[3]}
 Die Daten werden in Kürze verfügbar sein.
 
-Du hast die Möglichkeit, eine Zweitveröffentlichung dieser Publikation im Open Access frei zugänglich zu machen. Dafür kannst du die folgende Version in der ZHAW digitalcollection teilen:
+Du hast die Möglichkeit, eine Zweitveröffentlichung dieser Publikation im Open Access frei zugänglich zu machen. Dafür kannst du die folgende Version in unserem Repositorium teilen:
 ${params[4]}${params[5]}${params[6]}
 Wenn du diese Version des Beitrags hast oder vom Corresponding Author bekommen kannst, dann schicke uns gerne das Dokument zu. Wir werden die Datei an den Eintrag anhängen und dabei die erforderlichen Bedingungen einhalten, damit keine Rechte verletzt werden. Unsere Datengrundlage und weitere Informationen sind hier zu finden: ${params[7]}
 
@@ -50,8 +45,11 @@ Sende uns Fragen oder Ergänzungen in Bezug auf die erfassten Daten gern als Ant
 Freundliche Grüsse
 ${params[8]}
 
-ZHAW Hochschulbibliothek
-digitalcollection@zhaw.ch
+---
+${params[9]}
+ZHAW digitalcollection
+ZHAW | Finanzen & Services | Hochschulbibliothek | digitalcollection@zhaw.ch
+www.zhaw.ch/hsb
 ```
 
 
@@ -63,9 +61,7 @@ digitalcollection@zhaw.ch
     - [Dynamic Lookup extended](#dynamic-lookup-extended)
     - [AuthorNotifier](#authornotifier)
     - [AuthorNotificationService](#authornotificationservice)
-    - [DsDynamicFormControlContainer](#dsdynamicformcontrolcontainer)
-    - [Eager Theme Module](#eager-theme-module)
-    - [ZHAW Shared Components](#zhaw-shared-components)
+    - [DsDynamicFormControlMapFn](#dsdynamicformcontrolmapfn)
   - [Backend](#backend)
     - [Email-Template](#email-template)
     - [AuthorNotificationRest](#authornotificationrest)
@@ -78,7 +74,7 @@ digitalcollection@zhaw.ch
 <a name="voraussetzungen"/>
 
 ## Voraussetzungen
-- DSpace 7.x
+- DSpace 8.x
 
 <a name="installation"/>
 
@@ -99,7 +95,7 @@ In diesem Kapitel wird die Implementierung der Funktionalität für den Mailvers
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/dynamic-lookup-extended.component.ts
 - src/themes/zhaw/app/zhaw-shared/form/builder/ds-dynamic-form-ui/models/lookup/dynamic-lookup-extended.component.scss 
 
-Im Themes Ordner werden die Dateien DsDynamicLookup aus dem oberen Source Code eingefügt und personalisiert. Die Dateien werden umbenannt in DsDynamicExtendedLookup und erben vom DsDynamicLookup. In der TS-Datei muss ein neuer Service injected werden, damit die SubmissionId bekannt ist.
+Im Themes Ordner werden die Dateien DsDynamicLookup aus dem oberen Source Code eingefügt und personalisiert. Die Dateien werden umbenannt in DsDynamicExtendedLookup und erben vom DsDynamicVocabularyComponent. In der TS-Datei muss ein neuer Service injected werden, damit die SubmissionId bekannt ist.
 ```
 @Inject('submissionIdProvider') public injectedSubmissionId: string
 ```
@@ -127,35 +123,17 @@ In dieser Datei wird der Service implementiert, um die Informationen nach dem Be
 - der AuthorName: Name der verknüpften Person
 - die SubmissionId: Id des Items, welches sich im Workflow befindet
 
-<a name="dsdynamicformcontrolcontainer"/>
+<a name="dsdynamicformcontrolmapfn"/>
 
-### DsDynamicFormControlContainer 
-- src/app/shared/form/builder/ds-dynamic-form-ui/ds-dynamic-form-control-container.component.ts 
+### DsDynamicFormControlMapFn 
+- src/app/shared/form/builder/ds-dynamic-form-ui/ds-dynamic-form-control-map-fn.ts 
 
-Damit anstelle des Standards die erweiterte DsDynamicLookupExtendedComponent verwendet wird, muss sie im DsDynamicFormControlContainer verlinkt werden.
+Damit anstelle des Standards die erweiterte DsDynamicLookupExtendedComponent verwendet wird, muss sie im DsDynamicFormControlMapFn verlinkt werden.
 
 ```
 case DYNAMIC_FORM_CONTROL_TYPE_LOOKUP_NAME:
   return DsDynamicLookupExtendedComponent;
 ```
-
-<a name="eager-theme-module"/>
-
-### Eager Theme Module 
-- src/themes/zhaw/eager-theme.module.ts 
-
-Im Eager Theme Module muss ein neuer Import "FormModule" vorgenommen werden, damit das Dynamic Lookup Extended HTML läuft.
-
-<a name="zhaw-shared-components"/>
-
-### ZHAW Shared Components
-- src/themes/zhaw/app/zhaw-shared/zhaw-shared.components.ts
-
-Im ZHAW Shared Components werden die neuen Components erwähnt, welche im Eager Theme Module deklariert werden. Die Komponenten: 
-- DsAuthorNotifierComponent
-- DsDynamicLookupExtendedComponent
-
-
 
 <a name="backend"/>
 
@@ -164,11 +142,14 @@ Im ZHAW Shared Components werden die neuen Components erwähnt, welche im Eager 
 <a name="email-template"/>
 
 ### Email-Template
-- dspace/config/emails/author_bitstream_request 
-- dspace/config/emails/author_bitstream_request_de
-- dspace/config/emails/author_bitstream_request_en
+- dspace/config/emails/author_bitstream_request_aurora 
+- dspace/config/emails/author_bitstream_request_aurora_de
+- dspace/config/emails/author_bitstream_request_aurora_en
+- dspace/config/emails/author_bitstream_request_manual
+- dspace/config/emails/author_bitstream_request_manual_de
+- dspace/config/emails/author_bitstream_request_manual_en
 
-Das Email-Template wird in verschiedenen Sprachen gespeichert und beinhaltet `${params[0]}` (nummerierte Parameter) um die Email mit den dynamischen Informationen befüllen zu können.
+Das Email-Template wird in verschiedenen Sprachen gespeichert und beinhaltet `${params[0]}` (nummerierte Parameter) um die Email mit den dynamischen Informationen befüllen zu können. Es stehen zwei Templates zur Verfügung: eins für über den AURORA Publication Finder eingereichte Publikationen und eins für manuell eingereichte Publikationen.
 
 <a name="authornotificationrest"/>
 

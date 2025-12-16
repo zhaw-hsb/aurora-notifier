@@ -59,4 +59,9 @@ public class AuthorNotificationRest extends RestAddressableModel {
     public String getType() {
         return NAME;
     }
+
+    @Override
+    public String getTypePlural() {
+        return NAME_PLURAL;
+    }
 }

@@ -1,16 +1,14 @@
-# AURORA notification
-#
-# {0} Titel des Artikels
-# {1} Erscheinungsjahr des Artikels
-# {2} Original-DOI des Artikels
-# {3} Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
-# {4} Embargo [Sperrfrist: XX Monate] 
-# {5} Licence [Lizenz: XX]
-# {6} Vor- und Nachname der Editorin Live
-#
-#  Subject: Zweitveröffentlichung Ihrer Publikation im IRF
-
-
+## AURORA notification
+##
+## {0} Titel des Artikels
+## {1} Erscheinungsjahr des Artikels
+## {2} Original-DOI des Artikels
+## {3} Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+## {4} Embargo [Sperrfrist: XX Monate] 
+## {5} Licence [Lizenz: XX]
+## {6} Vor- und Nachname der Editorin Live
+##
+#set($subject = 'Zweitveröffentlichung Ihrer Publikation im IRF')
 Guten Tag
 
 Über einen automatisierten Prozess wird in ausgewählten Datenbanken nach neuen Publikationen von FHNW-Angehörigen gesucht und geprüft, ob eine Zweitveröffentlichung im IRF möglich ist.

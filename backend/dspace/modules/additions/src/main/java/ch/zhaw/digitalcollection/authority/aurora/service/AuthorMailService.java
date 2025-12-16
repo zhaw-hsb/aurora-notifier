@@ -11,7 +11,7 @@ package ch.zhaw.digitalcollection.authority.aurora.service;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;

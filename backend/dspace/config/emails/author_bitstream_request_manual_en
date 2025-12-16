@@ -1,0 +1,32 @@
+## Manual notification [EN]
+## 
+## {0}  Vorname des verlinkten Autors
+## {1}  Titel der Publikation
+## {2}  Publikationsdatum, nur Jahr
+## {3}  DOI
+## {4}  Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+## {5}  Embargo [Sperrfrist: XX Monate] 
+## {6}  Licence [Lizenz: XX]
+## {7}  URL [value]
+## {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle)
+## {9}  Name of the editor (Vorname und Nachname der bearbeitenden Person in der Qualitätskontrolle)
+#set($subject = 'Publication entry with Open Access potential')
+Dear ${params[0]}
+
+We are currently processing your publication to make it available in the ZHAW digitalcollection:
+${params[1]}${params[2]}${params[3]}
+You have the possibility to make this publication Open Access. To do so, you can share the following version in our repository:
+${params[4]}${params[5]}${params[6]}
+If you have this version or can request it from the corresponding author, please send us the document. We will attach the file to the entry and comply with the necessary conditions so that no rights are violated. Our data basis and further information can be found here: ${params[7]}
+
+In the meantime, we finalize your entry without an attachment to make the data available as soon as possible.
+
+
+Best regards,
+${params[8]}
+
+---
+${params[9]}
+ZHAW digitalcollection
+ZHAW | Finance & Services | University Library | digitalcollection@zhaw.ch
+www.zhaw.ch/hsb

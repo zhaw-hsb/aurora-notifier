@@ -52,7 +52,7 @@
               type="button"
               ngbTooltip="{{'form.search-help' | translate}}"
               placement="top"
-              [disabled]="model.readOnly || isSearchDisabled()"
+              [dsBtnDisabled]="model.readOnly || isSearchDisabled()"
               [hidden]="isInputDisabled()"
               (click)="sdRef.open(); search(); $event.stopPropagation();"><!-- ZHAW (hamn) delete text: {{'form.search' | translate}} -->
               <!-- ZHAW (hamn): add symbol-->
@@ -62,7 +62,7 @@
               type="button"
               ngbTooltip="{{'form.clear-help' | translate}}"
               placement="top"
-              [disabled]="model.readOnly"
+              [dsBtnDisabled]="model.readOnly"
               (click)="remove()">{{'form.clear' | translate}}
       </button>
     </div>
@@ -71,7 +71,7 @@
               type="button"
               ngbTooltip="{{'form.edit-help' | translate}}"
               placement="top"
-              [disabled]="isEditDisabled()"
+              [dsBtnDisabled]="isEditDisabled()"
               (click)="switchEditMode()"><!-- ZHAW (hamn) delete text: {{'form.edit' | translate}} -->
               <!-- ZHAW (hamn): add symbol -->
               <i class="fas fa-edit"></i>
@@ -80,13 +80,13 @@
               type="button"
               ngbTooltip="{{'form.save-help' | translate}}"
               placement="top"
-              [disabled]="!hasEmptyValue()"
+              [dsBtnDisabled]="!hasEmptyValue()"
               (click)="saveChanges()"><!-- ZHAW (hamn) delete text: {{'form.save' | translate}} -->
               <!-- ZHAW (hamn): add symbol -->
               <i class="fas fa-save"></i>
       </button>
     </div>
-    <ds-author-notifier [submissionId]="injectedSubmissionId" [modelValue]="model.value"></ds-author-notifier>  
+    <ds-author-notifier [submissionId]="injectedSubmissionId" [modelValue]="model.value"></ds-author-notifier>
   </div>
 
   <div ngbDropdownMenu
@@ -103,7 +103,7 @@
          [scrollWindow]="false">
 <!-- hamn: (click) wird nie ausgeführt, somit auch nicht clearFields()-->
       <button class="dropdown-item disabled"
-              *ngIf="optionsList && optionsList.length == 0"
+              *ngIf="optionsList && optionsList.length === 0"
               (click)="$event.stopPropagation(); clearFields(); sdRef.close();">{{'form.no-results' | translate}}
       </button>
       <!-- ZHAW -->

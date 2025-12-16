@@ -1,0 +1,34 @@
+## AURORA notification [DE]
+## 
+## {0}  Vorname des verlinkten Autors
+## {1}  Titel der Publikation
+## {2}  Publikationsdatum, nur Jahr
+## {3}  DOI
+## {4}  Version [Akzeptiertes Autorenmanuskript (AAM) oder Publizierte Verlagsversion]
+## {5}  Embargo [Sperrfrist: XX Monate] 
+## {6}  Licence [Lizenz: XX]
+## {7}  URL [value]
+## {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle)
+## {9}  Name of the editor (Vorname und Nachname der bearbeitenden Person in der Qualitätskontrolle)
+#set($subject = 'Publikationsnachweis mit Open-Access-Potential')
+Guten Tag ${params[0]}
+
+Über einen automatischen Prozess haben wir eine deiner Publikationen gefunden und in der ZHAW digitalcollection als Eintrag erfasst:
+${params[1]}${params[2]}${params[3]}
+Die Daten werden in Kürze verfügbar sein.
+
+Du hast die Möglichkeit, eine Zweitveröffentlichung dieser Publikation im Open Access frei zugänglich zu machen. Dafür kannst du die folgende Version in unserem Repositorium teilen:
+${params[4]}${params[5]}${params[6]}
+Wenn du diese Version des Beitrags hast oder vom Corresponding Author bekommen kannst, dann schicke uns gerne das Dokument zu. Wir werden die Datei an den Eintrag anhängen und dabei die erforderlichen Bedingungen einhalten, damit keine Rechte verletzt werden. Unsere Datengrundlage und weitere Informationen sind hier zu finden: ${params[7]}
+
+Sende uns Fragen oder Ergänzungen in Bezug auf die erfassten Daten gern als Antwort auf diese Nachricht. 
+
+
+Freundliche Grüsse
+${params[8]}
+
+---
+${params[9]}
+ZHAW digitalcollection
+ZHAW | Finanzen & Services | Hochschulbibliothek | digitalcollection@zhaw.ch
+www.zhaw.ch/hsb

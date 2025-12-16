@@ -14,8 +14,8 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Objects;
 
-import javax.inject.Inject;
-import javax.mail.MessagingException;
+import jakarta.inject.Inject;
+import jakarta.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +25,7 @@ import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.EPersonServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItemServiceImpl;
@@ -54,6 +55,8 @@ public class AuthorMailServiceImpl implements AuthorMailService {
     protected ConfigurationService configurationService;
     @Autowired(required = true)
     protected ItemServiceImpl itemServiceImpl;
+    @Autowired
+    protected EPersonServiceImpl epersonService;
 
     String auroraFieldName = "zhaw.oastatus.aurora";
 
@@ -66,15 +69,17 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         throws MessagingException, IOException, SQLException {
 
         OAStatusModel auroraModel = new OAStatusModel();
-        String[] authorNameParts = authorName.split(", ");
-        String contactedAuthor = authorNameParts[1] + " " + authorNameParts[0];
+        String contactedAuthorFirstName = authorName.split(", ")[1].split(" ")[0];
+        EPerson author = epersonService.findByEmail(context, email);
+        Locale supportedLocale = I18nUtil.getEPersonLocale(author);
 
         XmlWorkflowItem workflowItem =  workflowItemServiceImpl.find(context, Integer.parseInt(submissionId));
         
+        String owningCollectionHandle = Objects.requireNonNullElse(workflowItem.getCollection().getHandle(), "");
         EPerson owner = claimedTaskService.findByWorkflowItem(context, workflowItem).get(0).getOwner();
-        String ownerName =  Objects.requireNonNullElse(owner.getFirstName(), "");
-        String ownerEmail = owner.getEmail();
- 
+        String ownerFirstName =  Objects.requireNonNullElse(owner.getFirstName(), "");
+        String ownerFullName =  Objects.requireNonNullElse(owner.getFullName(), "");
+        
         Item item = workflowItem.getItem();
 
 
@@ -82,10 +87,12 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         String date = itemServiceImpl.getMetadata(item, "dc.date.issued");
         String dateIssued = "";
         if(date != null){
-            dateIssued = "("+date.substring(0, Math.min(date.length(), 4))+")";
+            dateIssued = " ("+date.substring(0, Math.min(date.length(), 4))+")\n";
+        }else{
+            articleTitle = articleTitle + "\n";
         }
-        String doi = Objects.requireNonNullElse(itemServiceImpl.getMetadata(item, "dc.identifier.doi"),"");
-        auroraModel = this.fillModel(itemServiceImpl.getMetadata(item, this.auroraFieldName));
+        String doi = itemServiceImpl.getMetadata(item, "dc.identifier.doi")==null?"": "https://doi.org/"+itemServiceImpl.getMetadata(item, "dc.identifier.doi")+"\n";
+        auroraModel = this.fillModel(itemServiceImpl.getMetadata(item, this.auroraFieldName), supportedLocale.getLanguage());
         
         if(auroraModel == null){
             throw new IllegalStateException("Missing value for " + this.auroraFieldName + ".");
@@ -105,14 +112,11 @@ public class AuthorMailServiceImpl implements AuthorMailService {
             # {6}  Licence [Lizenz: XX]
             # {7}  URL [value]
             # {8}  Name of the editor (Vorname der bearbeitenden Person in der Qualitätskontrolle - ist das machbar? Sonst weglassen)
-        */
-
-        Locale locale = context.getCurrentLocale();
-        Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale,"author_bitstream_request"));
+        */        
+        Email bean = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale,owningCollectionHandle.equals(configurationService.getProperty("aurora.collection.handle"))?"author_bitstream_request_aurora":"author_bitstream_request_manual"));
         bean.addRecipient(email);
-        bean.addRecipient(ownerEmail);
-        bean.addRecipient(configurationService.getProperty("mail.helpdesk"));
-        bean.addArgument(contactedAuthor);
+        bean.addBCCRecipient(configurationService.getProperty("mail.helpdesk"));
+        bean.addArgument(contactedAuthorFirstName);
         bean.addArgument(articleTitle);
         bean.addArgument(dateIssued);
         bean.addArgument(doi);
@@ -120,7 +124,8 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         bean.addArgument(auroraModel.getEmbargo());
         bean.addArgument(auroraModel.getLicence());
         bean.addArgument(auroraModel.getUrl());
-        bean.addArgument(ownerName);
+        bean.addArgument(ownerFirstName);
+        bean.addArgument(ownerFullName);
         bean.send();
 
         // Breadcrumbs
@@ -139,7 +144,7 @@ public class AuthorMailServiceImpl implements AuthorMailService {
      */
 
 
-    public OAStatusModel fillModel(String auroraField){
+    public OAStatusModel fillModel(String auroraField, String language){
 
         if(auroraField == null){
             return null;
@@ -154,9 +159,17 @@ public class AuthorMailServiceImpl implements AuthorMailService {
          */
         String[] versionParts = parts[0].split(" ");
         if (versionParts[1].equalsIgnoreCase("accepted")){
-            auroraModel.setVersion("- Akzeptiertes Autorenmanuskript (AAM)\n");
+            if(language.equals("en")){
+                auroraModel.setVersion("- Author accepted manuscript (AAM)\n");
+            }else{
+                auroraModel.setVersion("- Akzeptiertes Autorenmanuskript (AAM)\n");
+            }
         }else if (versionParts[1].equalsIgnoreCase("published")){
-            auroraModel.setVersion("- Publizierte Verlagsversion\n");
+             if(language.equals("en")){
+                auroraModel.setVersion("- Published version\n");
+            }else{
+                auroraModel.setVersion("- Publizierte Verlagsversion\n");
+            }
         }
 
 
@@ -166,18 +179,32 @@ public class AuthorMailServiceImpl implements AuthorMailService {
         String[] embargoParts = parts[1].split(" ");
         if(!embargoParts[1].equalsIgnoreCase("None")){
             String embargoValue = embargoParts[1];
-            String embargoUnit = embargoParts[2].equalsIgnoreCase("Months") ? "Monate" : parts[2];
+            String embargoUnit;
+            String embargoLabel;
             if(!embargoValue.equalsIgnoreCase("0")){
-                auroraModel.setEmbargo("- Sperrfrist: "+embargoValue+" "+embargoUnit+"\n");
+                if(language.equals("en")){
+                    embargoUnit = embargoParts[2].toLowerCase();
+                    embargoLabel = "- "+embargoParts[0]+" ";
+                }else{
+                    embargoUnit = embargoParts[2].equalsIgnoreCase("months") ? "Monate" : embargoParts[2];
+                    embargoLabel = "- Sperrfrist: ";
+                }
+                auroraModel.setEmbargo(embargoLabel+embargoValue+" "+embargoUnit+"\n");
             }
         }
 
         /*
          * LICENCE
          */
-        String[] licenceParts = parts[2].split(" ");
-        if(!licenceParts[1].equalsIgnoreCase("None")){
-            auroraModel.setLicence("- Lizenz: "+licenceParts[1]+"\n");
+        String[] licenceParts = parts[2].split(" ", 2);
+        String licenceLabel;
+        if(!licenceParts[1].equalsIgnoreCase("None") && licenceParts[1].toLowerCase().startsWith("cc")){
+            if(language.equals("en")){
+                licenceLabel = "- "+licenceParts[0]+" ";
+            }else{
+                licenceLabel = "- Lizenz: ";
+            }
+            auroraModel.setLicence(licenceLabel+licenceParts[1]+"\n");
         }
 
         

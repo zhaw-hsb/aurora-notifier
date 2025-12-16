@@ -6,13 +6,16 @@
 * For the full copyright and license information, please view the LICENSE
 * file that was distributed with this source code.
 */
+import {
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
 import { Observable } from 'rxjs';
-import { find, map } from 'rxjs/operators';
-
-import { HttpHeaders } from '@angular/common/http';
-import { HttpParams } from '@angular/common/http';
+import {
+  find,
+  map,
+} from 'rxjs/operators';
 import { RemoteDataBuildService } from 'src/app/core/cache/builders/remote-data-build.service';
 import { RemoteData } from 'src/app/core/data/remote-data';
 import { PostRequest } from 'src/app/core/data/request.models';
@@ -65,7 +68,7 @@ export class AuthorNotificationService {
     const href$ = this.getRegistrationEndpoint();
 
     const options: HttpOptions = Object.create({});
-    let headers = new HttpHeaders();
+    const headers = new HttpHeaders();
     options.headers = headers;
 
 
@@ -79,11 +82,11 @@ export class AuthorNotificationService {
       map((href: string) => {
         const request = new PostRequest(requestId, href, registration, options);
         this.requestService.send(request);
-      })
+      }),
     ).subscribe();
 
     return this.rdbService.buildFromRequestUUID<Registration>(requestId).pipe(
-      getFirstCompletedRemoteData()
+      getFirstCompletedRemoteData(),
     );
   }
 
